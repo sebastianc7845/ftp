@@ -1,4 +1,5 @@
 #include "network.hpp"
+#include "libtelnet.h"
 
 ssize_t Send(int sockfd, const uint8_t *src, size_t num_bytes) {
     ssize_t total_bytes_sent = 0, bytes_sent = 0;
@@ -74,7 +75,6 @@ ssize_t ReceiveRaw(int sockfd, uint8_t **bytes) {
 
     if (bytes_recvd <= 0)
         return bytes_recvd;
-
 
     len = ntohs(netbyte_len);
     *bytes = new uint8_t[len];

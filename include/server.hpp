@@ -11,6 +11,8 @@ typedef struct user {
 
     int userfd;
     struct sockaddr_in last_known_addr;
+    // last_known_addr.in_port_t == server connecrion control port
+    // then, last_known_addr.in_port_t - 1 == server default data port
     socklen_t addrlen;
     // contains working directory of user, it's privileges, etc.
     // filesystem_state fs_state;

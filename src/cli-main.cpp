@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <pwd.h>
 #include "client.hpp"
 #include "command.hpp"
 #include "response.hpp"
@@ -15,30 +16,33 @@ int main(int argc, char* argv[]) {
     Client cli;
     std::string input_buf;
 
-    while(true) {
-        bool try_again = true;
+    struct passwd *pw;
+    uid_t uid;
 
-        while (try_again) {
-            Prompt("Provide username");
-            GetInput(cli, input_buf);
+    uid = geteuid();
+    pw = getpwuid(uid);
 
-            cli.SetUsername(input_buf);
-
-            if (cli.GetUsername().compare("user") != 0) {
-                Prompt("No such username. Try again");
-                cli.SetUsername("");
-            }
-            else
-                try_again = false;
-        }
-        
-        Prompt("Provide password");
-        GetInput(cli, input_buf);
-
-        cli.SetPassword(input_buf);
+    if (pw == NULL) {
+        LOGERRNO;
+        LOGF("%s", "Could not get username, setting default username...");
+        cli.SetUsername("user");
+    } else {
+        cli.SetUsername(pw->pw_name);
     }
 
-    // TestProtocol(&cli);
+    // initiate connection to server on default protcol interpreter port
+
+    cli.Connect();
+
+    // start listening on negotiated data connection port
+    // otherwise, listen on default data connection port
+
+    // send transfer command thru protocol interpreter ports
+
+    // if server successfully connects to data port
+        // start transferring specified file
+
+    TestProtocol(&cli);
 
     return 0;
 }
@@ -61,7 +65,7 @@ void GetInput(Client &cli, std::string &inbuf) {
 
 
 void TestProtocol(Client *cli) {
-    Response rsp;
+    Reply rpy;
 
     LOGF("%s", "attempting to connect to server");
     if (cli->Connect() < 0)
@@ -69,8 +73,7 @@ void TestProtocol(Client *cli) {
 
     LOGF("%s", "Sending a message to the server...");
 
-    const char args[] = "arg arg arg";
-    Command cmd("USER", "arg arg arg", strlen(args));
+    Command cmd(USER, cli->GetUsername().c_str(), cli->GetUsername().size());
 
     if (cli->SendCommand(&cmd) < 0)
         LOGERRNO;
@@ -82,6 +85,14 @@ void TestProtocol(Client *cli) {
 
     LOGF("%s", "attempting to receive from server");
 
-    cli->ReceiveResponse(&rsp);
-    rsp.printResponse();
+    cli->ReceiveReply(&rpy);
+    rpy.printReply();
 }
+
+// TODO: where should this go?
+// member function or here?
+int sendCommand(Client &cli) {
+    UNUSED(cli);
+    return 0;
+}
+// 

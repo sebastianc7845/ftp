@@ -30,6 +30,7 @@ int Client::Connect() {
 
     srv_addr.sin_family = AF_INET;
     srv_addr.sin_port = htons(SFTP_PORT);
+    // TODO: prompt client, ask what IP they want to connect to
     inet_pton(AF_INET, "127.0.0.1", &(srv_addr.sin_addr));
 
     return connect(sockfd, (struct sockaddr *) &srv_addr, sizeof(struct sockaddr_in));
@@ -55,13 +56,13 @@ ssize_t Client::ReceiveBytes(uint8_t **bytes) {
     return ReceiveRaw(sockfd, bytes);
 }
 
-ssize_t Client::ReceiveResponse(Response *rsp) {
+ssize_t Client::ReceiveReply(Reply *rpy) {
     uint8_t *bytes = NULL;
     ssize_t bytes_recvd = ReceiveBytes(&bytes);
 
     if (bytes_recvd > 0) {
-        rsp->setResponseCode((char)bytes[0]);
-        rsp->setMessage((char *) (bytes + 1), bytes_recvd - 2 /* NULL CHAR + rsp code */);
+        rpy->setReplyCode((char *)bytes);
+        rpy->setMessage((char *) (bytes + REP_LEN + 1), bytes_recvd - 2 /* NULL CHAR + rsp code */);
 
         delete[] bytes;
     }
@@ -88,4 +89,3 @@ const std::string& Client::GetPassword() {
 void Client::SetPassword(std::string &password) {
     this->password = password;
 }
-

@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "command.hpp"
-#include "response.hpp"
+#include "reply.hpp"
 #include <string>
 
 class Client {
@@ -22,7 +22,7 @@ public:
     ssize_t SendBytes(const uint8_t *bytes, ssize_t buflen);
     ssize_t SendCommand(Command *cmd);
     ssize_t ReceiveBytes(uint8_t **bytes);
-    ssize_t ReceiveResponse(Response *rsp);
+    ssize_t ReceiveReply(Reply *rpy);
 
     const std::string &GetUsername();
     void SetUsername(std::string &username);

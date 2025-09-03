@@ -13,9 +13,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#define MAX_STRLEN 512
+#define MAX_STRLEN 64
 #define MAX_RECV 512
 #define CMD_LEN 4
+#define REP_LEN 3
 
 #define SFTP_PORT 41099
 #define MAX_CLIENTS 1
