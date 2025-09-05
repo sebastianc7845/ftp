@@ -1,36 +1,44 @@
-CXX = g++
-CXFLAGS = -std=c++11 -g -Iinclude -pedantic -Wall -Wextra -Wconversion
-CXLIB = -L./lib
-CXLIBS = -llibtelnet.a
+# Declare locations of files with specified extension
+# .h files in include directory
+vpath %.hpp ./include
+vpath %.h ./include
+# .c(pp) files in src directory
+vpath %.cpp ./src
+vpath %.c ./src
+
+# Declare C++ compiler + flags
+CXX := g++
+CXXFLAGS := -std=c++11 -g -Iinclude -pedantic -Wall -Wextra -Wconversion
+LDFLAGS := -L./lib
+LDLIBS := -llibtelnet.a
+
+# Declare build directory
+BLDDIR := ./build
+
+# DECLARE ALL SRC FILES
+SRCS = (shell find -name '*.cpp')
+# DECLARE ALL OBJ FILES
+OBJS = $(SRCS:%.cpp=$(BLDDIR)/%.o)
+# DECLARE ALL DEP FILES
+DEPS = $(OBJS:%.o=%.d)
 
 all: dir client server
 
 dir:
-	mkdir -p build
+	mkdir -p $(BLDDIR)
 
-server: src/srv-main.cpp build/server.o build/reply.o build/response.o build/command.o build/network.o include/common.h
-	$(CXX) $(CXFLAGS) $^ -o $@
+server: build/srv-main.o build/server.o build/reply.o build/response.o build/command.o build/network.o
+	$(CXX) $^ -o $@ 
 
-client: src/cli-main.cpp build/client.o build/reply.o build/response.o build/command.o build/network.o include/common.h
-	$(CXX) $(CXFLAGS) $^ -o $@
+client: build/cli-main.o build/client.o build/reply.o build/response.o build/command.o build/network.o
+	$(CXX) $^ -o $@
 
-build/client.o: src/client.cpp include/client.hpp
-	$(CXX) $(CXFLAGS) -c $< -o $@ $(CXLIB) $(CXLIBS)
 
-build/server.o: src/server.cpp include/server.hpp
-	$(CXX) $(CXFLAGS) -c $< -o $@ $(CXLIB) $(CXLIBS)
-
-build/response.o: src/response.cpp include/response.hpp
-	$(CXX) $(CXFLAGS) -c $< -o $@ $(CXLIB) $(CXLIBS)
-
-build/reply.o: src/reply.cpp include/reply.hpp
-	$(CXX) $(CXFLAGS) -c $< -o $@ $(CXLIB) $(CXLIBS)
-
-build/command.o: src/command.cpp include/command.hpp
-	$(CXX) $(CXFLAGS) -c $< -o $@ $(CXLIB) $(CXLIBS)
-
-build/network.o: src/network.cpp include/network.hpp
-	$(CXX) $(CXFLAGS) -c $< -o $@ $(CXLIB) $(CXLIBS)
+# BUILD STEP FOR CPP FILES
+$(BLDDIR)/%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@ -MP -MMD
 
 clean:
-	rm -f client server && rm -fr build
+	rm -f client server *.d && rm -fr build
+
+-include $(DEPS)
